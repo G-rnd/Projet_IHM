@@ -17,6 +17,8 @@ public class FileReader {
     public static JSONObject readJsonFromUrl(String url) {
         String json = "";
 
-        HttpClient client = HttpClient.newBuilder();
+        //HttpClient client = HttpClient.newBuilder();
+
+        return null;
     }
 }
