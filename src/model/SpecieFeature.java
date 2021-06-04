@@ -16,6 +16,14 @@ public class SpecieFeature {
         this.featureList = featureList;
     }
 
+    public int getId() {
+        return id;
+    }
+
+    public ArrayList<Feature> getFeatureList() {
+        return featureList;
+    }
+
     public int getOccurrences(String GeoHash) {
         return 0;
     }

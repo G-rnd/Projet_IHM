@@ -1,5 +1,9 @@
 package model;
 
+import data.FileReader;
+import org.json.JSONObject;
+
+import java.io.File;
 import java.util.ArrayList;
 import java.util.Date;
 
@@ -8,6 +12,14 @@ public class Model {
 
     public Model() {
         specieList = new ArrayList<>();
+
+        SpecieFeature test = FileReader.readLocalFile("data.json").get(0);
+
+        /*
+        for(Feature feature : test.getFeatureList()) {
+            System.out.println(feature.getN() + " | "+ feature.getZone().get(7));
+        }
+         */
     }
 
     public SpecieFeature getSpecie(int id) {
