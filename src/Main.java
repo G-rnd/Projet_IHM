@@ -1,10 +1,12 @@
 import controller.Controller;
+import data.FileReader;
 import javafx.application.Application;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.stage.Stage;
 import model.Model;
+import org.json.JSONObject;
 import view.View;
 
 public class Main extends Application {
@@ -45,6 +47,11 @@ public class Main extends Application {
 
 
     public static void main(String[] args) {
-        launch(args);
+        //launch(args);
+        JSONObject jsonRoot = FileReader.readJsonFromUrl(
+                "https://en.wikipedia.org/w/api.php?action=query&list=search&srsearch=Craig%20Noone&format=json"
+        );
+        System.out.println(jsonRoot.getJSONObject("query").getJSONArray("search")
+                .getJSONObject(0).getString("title"));
     }
 }
