@@ -3,24 +3,31 @@ package model;
 import java.util.ArrayList;
 
 public class Feature {
-    private final int n;
+    private String geoHash;
     private final ArrayList<Float> coordinates;
 
     public Feature() {
-        n = 0;
+        geoHash = "";
         coordinates = new ArrayList<>();
     }
 
-    public Feature(int n, ArrayList<Float> coordinates) {
-        this.n = n;
+    public Feature(ArrayList<Float> coordinates) {
         this.coordinates = coordinates;
     }
 
-    public int getN() {
-        return n;
+    public boolean generateGeoHash(int precision) {
+        if (precision > 0 && precision < 12) {
+            geoHash = GeoHash.convertCoordinatesToGeoHash(coordinates, precision);
+            return true;
+        }
+        return false;
     }
 
-    public ArrayList<Float> getZone() {
+    public String getGeoHash() {
+        return geoHash;
+    }
+
+    public ArrayList<Float> getCoordinates() {
         return coordinates;
     }
 }

@@ -1,20 +1,88 @@
 import controller.Controller;
-import data.FileReader;
+import data.ObisReader;
 import javafx.application.Application;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.stage.Stage;
+import model.Feature;
+import model.GeoHash;
 import model.Model;
-import org.json.JSONObject;
+import model.SpecieFeature;
 import view.View;
 
+import java.util.ArrayList;
+
 public class Main extends Application {
+    /*
+--module-path
+"C:\Program Files (x86)\Java\javafx-sdk-16\lib"
+--add-modules
+javafx.controls,javafx.fxml
+     */
+    public static void main(String[] args) {
+        //launch(args);
+
+/*
+        SpecieFeature specieFeature = Model.loadObisFile("Delphinidae", 3, "2018-12-02",
+                "2021-05-01");
+        System.out.println(specieFeature.getName());
+        System.out.println(specieFeature.getFeatureList().get(0).getZone().toString());
+        System.out.println(specieFeature.getFeatureList().size());
+        System.out.println(specieFeature.getOccurrences("",3));
+        System.out.println(specieFeature.getMinOccurrences());
+        System.out.println(specieFeature.getMaxOccurrences());
+
+ */
+        int test = 0b0000;
+
+        Model model = new Model("data.json");
+        if ((test & 0b1) == 1) {
+            for (ArrayList<Float> zone : model.getAllCoordinates())
+                System.out.println(GeoHash.convertCoordinatesToGeoHash(zone, 3));
+        }
+
+        if ((test & 0b10) == 0b10) {
+            System.out.println("--*--");
+            model.loadNamesFromLetters("Del");
+            for (String s : model.getNames())
+                System.out.println(s);
+        }
+
+        if ((test & 0b100) == 0b100) {
+            System.out.println("--*--");
+            ArrayList<String> species = ObisReader.loadNamesFromGeoHash("spd");
+            for (String s : species)
+                System.out.println(s);
+        }
+
+        if ((test & 0b1000) == 0b1000) {
+            System.out.println("--*--");
+            model.loadObisFile("Delphinidae", 3);
+            System.out.println("Min: " + model.getMinOccurrence());
+            System.out.println("Max: " + model.getMaxOccurrence());
+            System.out.println("Density: " + model.getDensity("spd"));
+        }
+
+        System.out.println("--------");
+        model.loadObisFile("Delphinidae", 3, "1980-05-02", "2020-01-22");
+        SpecieFeature sf = model.getSpecie();
+
+        /*
+        for(Feature f : sf.getFeatureList())
+            System.out.println(f.getGeoHash());
+         */
+        System.out.println("Min: " + model.getMinOccurrence());
+        System.out.println("Max: " + model.getMaxOccurrence());
+        System.out.println("Occ: "+ model.getOccurrence("585"));
+        System.out.println("Rho: "+ model.getDensity("585"));
+        System.out.println("-----\nEND");
+    }
 
     @Override
-    public void start(Stage primaryStage) throws Exception{
+    public void start(Stage primaryStage) throws Exception {
         //On crée le modèle
-        Model model = new Model();
+        Model model = new Model("data.json");
 
         //On crée le contrôleur
         Controller controller = new Controller(model);
@@ -43,18 +111,5 @@ public class Main extends Application {
         } catch (Exception e) {
             e.printStackTrace();
         }
-    }
-
-
-    public static void main(String[] args) {
-        launch(args);
-        /*
-        JSONObject jsonRoot = FileReader.readJsonFromUrl(
-                "https://en.wikipedia.org/w/api.php?action=query&list=search&srsearch=Craig%20Noone&format=json"
-        );
-        System.out.println(jsonRoot.getJSONObject("query").getJSONArray("search")
-                .getJSONObject(0).getString("title"));
-
-         */
     }
 }
