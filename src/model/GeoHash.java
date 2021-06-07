@@ -58,8 +58,4 @@ public class GeoHash {
         }
         return geoHash.toString();
     }
-
-    public static String convertGPStoGeoHash(float latitude, float longitude) {
-        return convertGPStoGeoHash(latitude, longitude, 3);
-    }
 }

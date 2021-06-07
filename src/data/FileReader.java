@@ -16,6 +16,28 @@ import java.util.concurrent.TimeUnit;
 
 public class FileReader {
 
+    private static String readAll(Reader rd) throws IOException {
+        StringBuilder sb = new StringBuilder();
+        int cp;
+        while ((cp = rd.read()) != -1) {
+            sb.append((char) cp);
+        }
+        return sb.toString();
+    }
+
+    public static SpecieFeature readLocalFile(String file) {
+        try (Reader reader = new java.io.FileReader(file)) {
+            BufferedReader rd = new BufferedReader(reader);
+            String jsonText = readAll(rd);
+
+            return ObisParser.parseOccurrencesJsonObject(new JSONObject(jsonText), "Delphinidae", 3);
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
+
     public static JSONObject readJsonObjectFromUrl(String url) {
         String json = "";
         HttpClient client = HttpClient.newBuilder()
@@ -60,27 +82,5 @@ public class FileReader {
             e.printStackTrace();
         }
         return new JSONArray(json);
-    }
-
-    private static String readAll(Reader rd) throws IOException {
-        StringBuilder sb = new StringBuilder();
-        int cp;
-        while ((cp = rd.read()) != -1) {
-            sb.append((char) cp);
-        }
-        return sb.toString();
-    }
-
-    public static SpecieFeature readLocalFile(String file) {
-        try (Reader reader = new java.io.FileReader(file)) {
-            BufferedReader rd = new BufferedReader(reader);
-            String jsonText = readAll(rd);
-
-            return ObisParser.parseOccurrencesJsonObject(new JSONObject(jsonText), 3);
-
-        } catch (Exception e) {
-            e.printStackTrace();
-            return null;
-        }
     }
 }

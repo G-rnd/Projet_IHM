@@ -29,12 +29,86 @@ public class SpecieFeature {
         }
     }
 
+    public String getName() {
+        return name;
+    }
+
+    public int getNbFeatures() {
+        return featureList.size();
+    }
+
+    public int getNbIndividuals() {
+        int i = 0;
+        for(Feature f : featureList) {
+            i += f.getN();
+
+        }
+        return i;
+    }
+
     public int getGeoHashPrecision() {
         return geoHashPrecision;
     }
 
-    public static boolean isGeoHashValid(int geoHashPrecision) {
-        return geoHashPrecision > 0 && geoHashPrecision < 12;
+    public int getMinOccurrence() {
+        return minOccurrence;
+    }
+
+    public int getMaxOccurrence() {
+        return maxOccurrence;
+    }
+
+    public ArrayList<Feature> getFeatureList() {
+        return featureList;
+    }
+
+    public int getOccurrences(String geoHash) {
+        try {
+            int i = 0;
+            for (Feature feature : featureList)
+                if (GeoHash.convertCoordinatesToGeoHash(feature.getCoordinates(), geoHashPrecision).equals(geoHash))
+                    i+= feature.getN();
+            return i;
+        } catch (Exception e) {
+            System.out.println("Espèce non reconnue");
+            return 0;
+        }
+    }
+
+    public float getZoneDensity(String geoHash) {
+        float min = (float) minOccurrence;
+        float max = (float) maxOccurrence;
+        if (min == max)
+            return 0;
+        else
+            return (getOccurrences(geoHash) - min) / (max - min);
+    }
+
+    public ArrayList<ArrayList<Float>> getAllCoordinates() {
+        ArrayList<ArrayList<Float>> zones = new ArrayList<>();
+        for (Feature feature : featureList) {
+            if (zones.size() == 0) {
+                zones.add(feature.getCoordinates());
+            } else {
+                boolean add = true;
+                for (ArrayList<Float> zone : zones) {
+                    boolean equals = true;
+                    for(int i = 0; i < zone.size(); i++)
+                        if (!zone.get(i).equals(feature.getCoordinates().get(i))) {
+                            equals = false;
+                            break;
+                        }
+                    if (equals) {
+                        add = false;
+                        break;
+                    }
+                }
+                if (add) {
+                    zones.add(feature.getCoordinates());
+                }
+            }
+        }
+        return zones;
     }
 
     private boolean generateGeoHash() {
@@ -47,8 +121,7 @@ public class SpecieFeature {
     }
 
     private void generateMinMax() {
-        ArrayList<Integer> occurrences = getOccurrencesArrays();
-
+        ArrayList<Integer> occurrences = getOccurrencesArray();
         if (occurrences.size() > 0) {
             int min = occurrences.get(0);
             int max = occurrences.get(0);
@@ -61,67 +134,33 @@ public class SpecieFeature {
         }
     }
 
-    public String getName() {
-        return name;
-    }
-
-    public ArrayList<Feature> getFeatureList() {
-        return featureList;
-    }
-
-    public int getOccurrences(String geoHash) {
-        try {
-            int i = 0;
-            for (Feature feature : featureList)
-                if (GeoHash.convertCoordinatesToGeoHash(feature.getCoordinates(), geoHashPrecision).equals(geoHash))
-                    i++;
-            return i;
-        } catch (Exception e) {
-            System.out.println("Espèce non reconnue");
-            return 0;
-        }
-    }
-
-    private ArrayList<Integer> getOccurrencesArrays() {
+    private ArrayList<Integer> getOccurrencesArray() {
         ArrayList<String> zones = new ArrayList<>();
         ArrayList<Integer> occurrences = new ArrayList<>();
 
         for (Feature feature : featureList) {
             if (zones.size() == 0) {
                 zones.add(feature.getGeoHash());
-                occurrences.add(1);
+                occurrences.add(feature.getN());
             } else {
                 boolean add = false;
                 for (int i = 0; i < zones.size(); i++) {
                     if (zones.get(i).equals(feature.getGeoHash()))
-                        occurrences.set(i, occurrences.get(i) + 1);
+                        occurrences.set(i, occurrences.get(i) + feature.getN());
                     else {
                         add = true;
                     }
                 }
                 if (add) {
                     zones.add(feature.getGeoHash());
-                    occurrences.add(1);
+                    occurrences.add(feature.getN());
                 }
             }
         }
         return occurrences;
     }
 
-    public int getMinOccurrences() {
-        return minOccurrence;
-    }
-
-    public int getMaxOccurrences() {
-        return maxOccurrence;
-    }
-
-    public float getZoneDensity(String geoHash) {
-        float min = (float) minOccurrence;
-        float max = (float) maxOccurrence;
-        if (min == max)
-            return 0;
-        else
-            return (getOccurrences(geoHash) - min) / (max - min);
+    public static boolean isGeoHashValid(int geoHashPrecision) {
+        return geoHashPrecision > 0 && geoHashPrecision < 12;
     }
 }

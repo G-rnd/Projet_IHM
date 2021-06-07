@@ -1,17 +1,12 @@
-import controller.Controller;
-import data.ObisReader;
 import javafx.application.Application;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.stage.Stage;
-import model.Feature;
-import model.GeoHash;
-import model.Model;
-import model.SpecieFeature;
-import view.View;
 
-import java.util.ArrayList;
+import model.Model;
+import view.View;
+import controller.Controller;
 
 public class Main extends Application {
     /*
@@ -21,62 +16,7 @@ public class Main extends Application {
 javafx.controls,javafx.fxml
      */
     public static void main(String[] args) {
-        //launch(args);
-
-/*
-        SpecieFeature specieFeature = Model.loadObisFile("Delphinidae", 3, "2018-12-02",
-                "2021-05-01");
-        System.out.println(specieFeature.getName());
-        System.out.println(specieFeature.getFeatureList().get(0).getZone().toString());
-        System.out.println(specieFeature.getFeatureList().size());
-        System.out.println(specieFeature.getOccurrences("",3));
-        System.out.println(specieFeature.getMinOccurrences());
-        System.out.println(specieFeature.getMaxOccurrences());
-
- */
-        int test = 0b0000;
-
-        Model model = new Model("data.json");
-        if ((test & 0b1) == 1) {
-            for (ArrayList<Float> zone : model.getAllCoordinates())
-                System.out.println(GeoHash.convertCoordinatesToGeoHash(zone, 3));
-        }
-
-        if ((test & 0b10) == 0b10) {
-            System.out.println("--*--");
-            model.loadNamesFromLetters("Del");
-            for (String s : model.getNames())
-                System.out.println(s);
-        }
-
-        if ((test & 0b100) == 0b100) {
-            System.out.println("--*--");
-            ArrayList<String> species = ObisReader.loadNamesFromGeoHash("spd");
-            for (String s : species)
-                System.out.println(s);
-        }
-
-        if ((test & 0b1000) == 0b1000) {
-            System.out.println("--*--");
-            model.loadObisFile("Delphinidae", 3);
-            System.out.println("Min: " + model.getMinOccurrence());
-            System.out.println("Max: " + model.getMaxOccurrence());
-            System.out.println("Density: " + model.getDensity("spd"));
-        }
-
-        System.out.println("--------");
-        model.loadObisFile("Delphinidae", 3, "1980-05-02", "2020-01-22");
-        SpecieFeature sf = model.getSpecie();
-
-        /*
-        for(Feature f : sf.getFeatureList())
-            System.out.println(f.getGeoHash());
-         */
-        System.out.println("Min: " + model.getMinOccurrence());
-        System.out.println("Max: " + model.getMaxOccurrence());
-        System.out.println("Occ: "+ model.getOccurrence("585"));
-        System.out.println("Rho: "+ model.getDensity("585"));
-        System.out.println("-----\nEND");
+        launch(args);
     }
 
     @Override

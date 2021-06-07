@@ -3,18 +3,14 @@ package model;
 import data.FileReader;
 import data.ObisReader;
 
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 
 public class Model {
-    public static final DateFormat format = new SimpleDateFormat("yyyy-MM-dd");
     private SpecieFeature specie;
     private ArrayList<ObservationDetails> observationDetails;
     private ArrayList<String> names;
 
     public Model(String filename) {
-        format.setLenient(false);
         observationDetails = new ArrayList<>();
         names = new ArrayList<>();
 
@@ -23,10 +19,7 @@ public class Model {
     }
 
     public ArrayList<ArrayList<Float>> getAllCoordinates() {
-        ArrayList<ArrayList<Float>> ret = new ArrayList<>();
-        for (Feature feature : specie.getFeatureList())
-            ret.add(feature.getCoordinates());
-        return ret;
+        return specie.getAllCoordinates();
     }
 
     public int getOccurrence(String geoHash) {
@@ -38,23 +31,35 @@ public class Model {
     }
 
     public int getMinOccurrence() {
-        return specie.getMinOccurrences();
+        return specie.getMinOccurrence();
     }
 
     public int getMaxOccurrence() {
-        return specie.getMaxOccurrences();
+        return specie.getMaxOccurrence();
     }
 
     public ArrayList<String> getNames() {
         return names;
     }
 
-    public SpecieFeature getSpecie() {
-        return specie;
-    }
-
     public ArrayList<ObservationDetails> getObservationDetails() {
         return observationDetails;
+    }
+
+    public String getName() {
+        return specie.getName();
+    }
+
+    public int getNbFeatures() {
+        return specie.getNbFeatures();
+    }
+
+    public int getNbIndividuals() {
+        return specie.getNbIndividuals();
+    }
+
+    public int getGeoHashPrecision() {
+        return specie.getGeoHashPrecision();
     }
 
     public boolean loadLocalFile(String name) {
