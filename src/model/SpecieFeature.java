@@ -3,78 +3,121 @@ package model;
 import java.util.ArrayList;
 
 public class SpecieFeature {
+    /**
+     * Nom de l'espèce observée.
+     */
     private final String name;
+    /**
+     * Degré de précision des geoHashs.
+     */
     private final int geoHashPrecision;
+    /**
+     * Liste des observations de l'espèce.
+     */
+    private final ArrayList<Feature> featureList;
+    /**
+     * Nombre minimal non nul d'individus sur un geoHash.
+     */
     private int minOccurrence;
+    /**
+     * Nombre maximal d'individus sur un geoHash.
+     */
     private int maxOccurrence;
-    private ArrayList<Feature> featureList;
-
-    public SpecieFeature() {
-        name = "";
-        geoHashPrecision = 0;
-        featureList = new ArrayList<>();
-        minOccurrence = 0;
-        maxOccurrence = 0;
-    }
 
     public SpecieFeature(String name, ArrayList<Feature> featureList, int geoHashPrecision) {
         this.geoHashPrecision = geoHashPrecision;
         this.name = name;
-        this.featureList = featureList;
-
-        if (!generateGeoHash()) {
+        this.featureList = new ArrayList<>();
+        for (Feature feature : featureList)
+            this.featureList.add(new Feature(feature.getCoordinates(), feature.getN()));
+        if (!generateGeoHash())
             System.out.println("[SpecieFeature]: Could not generate geoHash.");
-        } else {
+        else
             generateMinMax();
-        }
     }
 
+    public static boolean isGeoHashValid(int geoHashPrecision) {
+        return geoHashPrecision > 0 && geoHashPrecision < 12;
+    }
+
+    /**
+     * Renvoie le nom scientifique de l'espèce.
+     *
+     * @return Le membre name.
+     */
     public String getName() {
         return name;
     }
 
-    public int getNbFeatures() {
+    /**
+     * Renvoie le nombre de geoHashs différentes.
+     *
+     * @return Le nombre de geoHashs.
+     */
+    public int getNbZones() {
         return featureList.size();
     }
 
+    /**
+     * Renvoie le nombre d'individus observés.
+     *
+     * @return Le nombre total d'individus.
+     */
     public int getNbIndividuals() {
         int i = 0;
-        for(Feature f : featureList) {
+        for (Feature f : featureList)
             i += f.getN();
-
-        }
         return i;
     }
 
-    public int getGeoHashPrecision() {
-        return geoHashPrecision;
-    }
-
+    /**
+     * Renvoie la plus petite occurrence non nulle d'une zone.
+     *
+     * @return Le membre minOccurrence.
+     */
     public int getMinOccurrence() {
         return minOccurrence;
     }
 
+    /**
+     * Renvoie la plus grande occurrence d'une zone.
+     *
+     * @return Le membre maxOccurrence.
+     */
     public int getMaxOccurrence() {
         return maxOccurrence;
     }
 
+    /**
+     * Renvoie la liste des observations.
+     *
+     * @return Le membre featureList.
+     */
     public ArrayList<Feature> getFeatureList() {
         return featureList;
     }
 
+    /**
+     * Renvoie le nombre d'occurrences pour un geoHash.
+     *
+     * @param geoHash La zone désirée.
+     * @return Le nombre d'occurrences dans cette zone.
+     */
     public int getOccurrences(String geoHash) {
-        try {
-            int i = 0;
-            for (Feature feature : featureList)
-                if (GeoHash.convertCoordinatesToGeoHash(feature.getCoordinates(), geoHashPrecision).equals(geoHash))
-                    i+= feature.getN();
-            return i;
-        } catch (Exception e) {
-            System.out.println("Espèce non reconnue");
-            return 0;
+        for (Feature feature : featureList) {
+            if (feature.getGeoHash().equals(geoHash)) {
+                return feature.getN();
+            }
         }
+        return 0;
     }
 
+    /**
+     * Renvoie la densité d'individus relative au nombre minimal d'entité non nul et au nombre maximal d'entité.
+     *
+     * @param geoHash La zone désirée.
+     * @return Un pourcentage.
+     */
     public float getZoneDensity(String geoHash) {
         float min = (float) minOccurrence;
         float max = (float) maxOccurrence;
@@ -84,33 +127,22 @@ public class SpecieFeature {
             return (getOccurrences(geoHash) - min) / (max - min);
     }
 
-    public ArrayList<ArrayList<Float>> getAllCoordinates() {
-        ArrayList<ArrayList<Float>> zones = new ArrayList<>();
-        for (Feature feature : featureList) {
-            if (zones.size() == 0) {
-                zones.add(feature.getCoordinates());
-            } else {
-                boolean add = true;
-                for (ArrayList<Float> zone : zones) {
-                    boolean equals = true;
-                    for(int i = 0; i < zone.size(); i++)
-                        if (!zone.get(i).equals(feature.getCoordinates().get(i))) {
-                            equals = false;
-                            break;
-                        }
-                    if (equals) {
-                        add = false;
-                        break;
-                    }
-                }
-                if (add) {
-                    zones.add(feature.getCoordinates());
-                }
-            }
-        }
-        return zones;
+    /**
+     * Renvoie l'échelle du gradient de la densité de la zone.
+     *
+     * @param geoHash La zone désirée.
+     * @return Un gradient correspondant.
+     */
+    public int getZoneDensityLevel(String geoHash) {
+        int ret = (int) (getZoneDensity(geoHash) * 8);
+        return Math.min(ret, 7);
     }
 
+    /**
+     * Génère les geoHash des observations.
+     *
+     * @return Un booléen à VRAI si la génération s'est effectuée avec succès, à FAUX sinon.
+     */
     private boolean generateGeoHash() {
         if (isGeoHashValid(geoHashPrecision)) {
             for (Feature f : featureList)
@@ -120,47 +152,19 @@ public class SpecieFeature {
             return false;
     }
 
+    /**
+     * Génère le nombre d'occurrence minimal et maximal sur l'échantillon.
+     */
     private void generateMinMax() {
-        ArrayList<Integer> occurrences = getOccurrencesArray();
-        if (occurrences.size() > 0) {
-            int min = occurrences.get(0);
-            int max = occurrences.get(0);
-            for (int i : occurrences) {
-                min = Integer.min(i, min);
-                max = Integer.max(i, max);
+        if (featureList.size() > 0) {
+            int min = featureList.get(0).getN();
+            int max = featureList.get(0).getN();
+            for (Feature f : featureList) {
+                min = Integer.min(f.getN(), min);
+                max = Integer.max(f.getN(), max);
             }
             minOccurrence = min;
             maxOccurrence = max;
         }
-    }
-
-    private ArrayList<Integer> getOccurrencesArray() {
-        ArrayList<String> zones = new ArrayList<>();
-        ArrayList<Integer> occurrences = new ArrayList<>();
-
-        for (Feature feature : featureList) {
-            if (zones.size() == 0) {
-                zones.add(feature.getGeoHash());
-                occurrences.add(feature.getN());
-            } else {
-                boolean add = false;
-                for (int i = 0; i < zones.size(); i++) {
-                    if (zones.get(i).equals(feature.getGeoHash()))
-                        occurrences.set(i, occurrences.get(i) + feature.getN());
-                    else {
-                        add = true;
-                    }
-                }
-                if (add) {
-                    zones.add(feature.getGeoHash());
-                    occurrences.add(feature.getN());
-                }
-            }
-        }
-        return occurrences;
-    }
-
-    public static boolean isGeoHashValid(int geoHashPrecision) {
-        return geoHashPrecision > 0 && geoHashPrecision < 12;
     }
 }

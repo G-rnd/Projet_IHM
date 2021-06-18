@@ -1,12 +1,12 @@
 import javafx.application.Application;
 import javafx.fxml.FXMLLoader;
-import javafx.scene.Parent;
-import javafx.scene.Scene;
+import javafx.scene.*;
 import javafx.stage.Stage;
 
 import model.Model;
 import view.View;
 import controller.Controller;
+
 
 public class Main extends Application {
     /*
@@ -20,7 +20,7 @@ javafx.controls,javafx.fxml
     }
 
     @Override
-    public void start(Stage primaryStage) throws Exception {
+    public void start(Stage primaryStage) {
         //On crée le modèle
         Model model = new Model("data.json");
 
@@ -29,6 +29,8 @@ javafx.controls,javafx.fxml
 
         //On crée la vue, qui aura le contrôle du fichier FXML
         View view = new View(controller);
+
+        controller.setReceiver(view);
 
         try {
             //On prépare le fichier FXML
@@ -45,6 +47,8 @@ javafx.controls,javafx.fxml
 
             //On définit cette scène comme étant la scène de notre première fenêtre
             primaryStage.setScene(scene);
+
+            primaryStage.setTitle("Obis 3D");
 
             //On rend cette fenêtre visible
             primaryStage.show();

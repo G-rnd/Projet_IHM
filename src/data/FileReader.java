@@ -16,6 +16,11 @@ import java.util.concurrent.TimeUnit;
 
 public class FileReader {
 
+    /**
+     * @param rd Reader
+     * @return Les données lues;
+     * @throws IOException -
+     */
     private static String readAll(Reader rd) throws IOException {
         StringBuilder sb = new StringBuilder();
         int cp;
@@ -25,6 +30,12 @@ public class FileReader {
         return sb.toString();
     }
 
+    /**
+     * Récupère le nombre de signalements par région pour un fichier local.
+     *
+     * @param file Le fichier local.
+     * @return Une SpecieFeature avec les informations lues.
+     */
     public static SpecieFeature readLocalFile(String file) {
         try (Reader reader = new java.io.FileReader(file)) {
             BufferedReader rd = new BufferedReader(reader);
@@ -38,6 +49,12 @@ public class FileReader {
         }
     }
 
+    /**
+     * Renvoie un JSONObject obtenu après une requête.
+     *
+     * @param url L'url de la requête.
+     * @return Le JSONObject lu.
+     */
     public static JSONObject readJsonObjectFromUrl(String url) {
         String json = "";
         HttpClient client = HttpClient.newBuilder()
@@ -61,6 +78,12 @@ public class FileReader {
         return new JSONObject(json);
     }
 
+    /**
+     * Renvoie un JSONArray obtenu après une requête.
+     *
+     * @param url L'url de la requête.
+     * @return Le JSONArray lu.
+     */
     public static JSONArray readJsonArrayFromUrl(String url) {
         String json = "";
         HttpClient client = HttpClient.newBuilder()
