@@ -123,11 +123,20 @@ public class View implements Initializable, ReceiveNotification {
 
     private long timeAnimation;
     private Group geoHashes;
+    private Group earth;
 
     public View(Controller controller) {
         this.controller = controller;
     }
 
+    /**
+     * Renvoie un point 3D à partir d'une latitude, une longitude et du rayon d'une sphère.
+     *
+     * @param lat    La latitude considérée.
+     * @param lon    La longitude considérée.
+     * @param radius Le rayon de la sphère considéré.
+     * @return Le point 3D calculé.
+     */
     public static Point3D geoCordTo3dCoords(float lat, float lon, float radius) {
         float lat_cor = lat + TEXTURE_LAT_OFFSET;
         float lon_cor = lon + TEXTURE_LON_OFFSET;
@@ -139,6 +148,14 @@ public class View implements Initializable, ReceiveNotification {
         );
     }
 
+    /**
+     * Renvoie une affine à partir du point de départ, le point d'arrivée et la direction.
+     *
+     * @param from Le point de départ.
+     * @param to   Le point d'arrivée.
+     * @param ydir La direction.
+     * @return L'affine.
+     */
     public static Affine lookAt(Point3D from, Point3D to, Point3D ydir) {
         Point3D zVec = to.subtract(from).normalize();
         Point3D xVec = ydir.normalize().crossProduct(zVec).normalize();
@@ -153,6 +170,7 @@ public class View implements Initializable, ReceiveNotification {
         //Create a Pane et graph scene root for the 3D content
         Group root3D = new Group();
         geoHashes = new Group();
+        earth = new Group();
 
         // Load geometry
         ObjModelImporter objImporter = new ObjModelImporter();
@@ -165,9 +183,9 @@ public class View implements Initializable, ReceiveNotification {
         }
 
         MeshView[] meshViews = objImporter.getImport();
-        Group earth = new Group(meshViews);
+        earth = new Group(meshViews);
         root3D.getChildren().add(earth);
-
+        earth.getChildren().add(geoHashes);
         //Add a camera group
         PerspectiveCamera camera = new PerspectiveCamera(true);
 
@@ -214,10 +232,14 @@ public class View implements Initializable, ReceiveNotification {
         loadLocalFile();
 
         display = true;
-        earth.getChildren().addAll(geoHashes);
-        launchlisteners(subScene);
+        launchlisteners();
     }
 
+    /**
+     * Affiche les geoHashes dont la couleur dépend du nombre d'occurrences.
+     *
+     * @param specieFeature Une specieFeature comportant les données d'une espèce.
+     */
     private void printGeoHashesFromSpecieFeature(SpecieFeature specieFeature) {
         geoHashes.getChildren().clear();
         for (Feature f : specieFeature.getFeatureList()) {
@@ -230,6 +252,13 @@ public class View implements Initializable, ReceiveNotification {
         display = true;
     }
 
+    /**
+     * Affiche un geoHash.
+     *
+     * @param parent Le parent dans lequel ranger le geoHash nouvellement créé.
+     * @param points Les coordonnées du geoHash.
+     * @param color  La couleur du geoHash.
+     */
     private void printGeoHash(Group parent, ArrayList<Float> points, Color color) {
         final PhongMaterial material = new PhongMaterial();
         material.setDiffuseColor(new Color(color.getRed(), color.getGreen(), color.getBlue(), 0.505));
@@ -243,6 +272,16 @@ public class View implements Initializable, ReceiveNotification {
         );
     }
 
+    /**
+     * Crée et àjoute un rectangle à un goupe parent.
+     *
+     * @param parent      Le groupe parent.
+     * @param topRight    Le point N-E du quadrilatère.
+     * @param bottomRight Le point S-E du quadrilatère.
+     * @param bottomLeft  Le point S-O du quadrilatère.
+     * @param topLeft     Le point N-O du quadrilatère.
+     * @param material    Le matériau du rectangle.
+     */
     private void AddQuadrilaterial(Group parent, Point3D topRight, Point3D bottomRight, Point3D bottomLeft,
                                    Point3D topLeft, PhongMaterial material) {
         final TriangleMesh triangleMesh = new TriangleMesh();
@@ -272,6 +311,11 @@ public class View implements Initializable, ReceiveNotification {
         parent.getChildren().addAll(meshView);
     }
 
+    /**
+     * Affiche des histogrammes 3D dont la couleur et la hauteur dépendent du nombre d'occurrences.
+     *
+     * @param specieFeature Une specieFeature comportant les données d'une espèce.
+     */
     private void printAffineFromSpecieFeature(SpecieFeature specieFeature) {
         geoHashes.getChildren().clear();
         for (Feature f : specieFeature.getFeatureList()) {
@@ -303,7 +347,10 @@ public class View implements Initializable, ReceiveNotification {
         display = true;
     }
 
-    private void launchlisteners(SubScene subScene) {
+    /**
+     * Lance les événements de la vue.
+     */
+    private void launchlisteners() {
         timeCheckBox.setOnAction(event -> {
             if (timeCheckBox.isSelected()) {
                 timeIntervalBox.setVisible(true);
@@ -313,6 +360,7 @@ public class View implements Initializable, ReceiveNotification {
                 evolutionCheckBox.setSelected(false);
             }
         });
+
         evolutionCheckBox.setOnAction(event -> {
             buttonBox.setVisible(evolutionCheckBox.isSelected());
             startButton.setDisable(true);
@@ -339,72 +387,27 @@ public class View implements Initializable, ReceiveNotification {
             obsCommonList.getItems().clear();
             obsDetailsList.getItems().clear();
             display = false;
+            earth.toFront();
         });
 
-        nameTextField.setOnAction(event -> {
-            nameList.getItems().clear();
-            nameList.setVisible(false);
-            nameList.setMaxHeight(0);
+        nameTextField.setOnAction(event -> launchObisSpecieQuery());
 
-            if (!timeCheckBox.isSelected()) {
-                infoLabel.setVisible(true);
-                infoLabel.setText("Chargement d'une espèce ...");
-                controller.loadObisFiles(nameTextField.getCharacters().toString());
-                // wait receiveNotificationLoadedObis1
-            } else {
-                // Mode entre 2 dates.
-                LocalDate startDate = startDatePicker.getValue();
-                LocalDate endDate = endDatePicker.getValue();
-                if (startDate != null && endDate != null) {
-                    if (startDate.isBefore(endDate)) {
-                        startDateLabel.setVisible(false);
-                        startDateLabel.setMaxHeight(0);
-                        endDateLabel.setVisible(false);
-                        endDateLabel.setMaxHeight(0);
-
-                        if (!evolutionCheckBox.isSelected()) {
-                            infoLabel.setVisible(true);
-                            infoLabel.setText("Chargement d'une espèce ...");
-                            controller.loadObisFiles(nameTextField.getCharacters().toString(), startDate.toString(), endDate.toString());
-                            // wait receiveNotificationLoadedObis2
-                        } else {
-                            // mode Evolution
-                            infoLabel.setVisible(true);
-                            infoLabel.setText("Chargement d'une espèce ...");
-                            controller.loadObisFiles(nameTextField.getCharacters().toString(), startDate.toString(),
-                                    endDate.getYear() - startDate.getYear());
-                            // wait receiveNotificationLoadedObis3
-                        }
-                    } else {
-                        startDateLabel.setVisible(true);
-                        startDateLabel.setMaxHeight(18);
-                        endDateLabel.setVisible(true);
-                        endDateLabel.setMaxHeight(18);
-                    }
-                } else {
-                    startDateLabel.setVisible(true);
-                    startDateLabel.setMaxHeight(18);
-                    endDateLabel.setVisible(true);
-                    endDateLabel.setMaxHeight(18);
-                }
-            }
-        });
-
-        subScene.setOnMouseClicked(event -> {
+        earth.setOnMouseClicked(event -> {
+            geoHashes.setDisable(true);
             Point3D point3D = event.getPickResult().getIntersectedPoint();
+            double norm = Math.sqrt(Math.pow(point3D.getX(), 2) + Math.pow(point3D.getY(), 2) + Math.pow(point3D.getZ(), 2));
+            double latitude = Math.asin(-point3D.getY() / norm) * 180 / Math.PI - TEXTURE_LAT_OFFSET;
+            double longitude = -(Math.atan2(-point3D.getZ() / norm, -point3D.getX() / norm)) - Math.PI / 2;
 
-            double latitude = -Math.asin(point3D.getY() / 1.1) * 180 / Math.PI - TEXTURE_LAT_OFFSET;
-            double longitude = -(Math.atan2(-point3D.getZ(), -point3D.getX())) - Math.PI / 2;
             if (longitude < -Math.PI)
                 longitude += Math.PI * 2;
 
             longitude *= -180 / Math.PI;
             longitude -= TEXTURE_LON_OFFSET;
 
-            if (!Double.isNaN(longitude) && !Double.isNaN(longitude)) {
+            if (!Double.isNaN(latitude) && !Double.isNaN(longitude)) {
                 String geoHash = GeoHash.convertGPStoGeoHash((float) latitude, (float) longitude, 3);
-
-                if (event.getClickCount() == 1 && event.isControlDown()) {
+                if (event.getClickCount() == 1 && event.isControlDown() && display) {
                     if (controller.getSpecie().getOccurrences(geoHash) > 0) {
                         String name;
                         if (evolutionCheckBox.isSelected()) {
@@ -438,6 +441,7 @@ public class View implements Initializable, ReceiveNotification {
                     }
                 }
             }
+            geoHashes.setDisable(false);
         });
 
         startButton.setOnAction(actionEvent -> {
@@ -485,7 +489,6 @@ public class View implements Initializable, ReceiveNotification {
         });
 
         pauseButton.setOnAction(actionEvent -> {
-            clearButton.setDisable(false);
             animate = !animate;
             if (animate) {
                 infoLabel.setText("");
@@ -508,14 +511,13 @@ public class View implements Initializable, ReceiveNotification {
             animate = false;
             id_frame = 0;
             animation.stop();
+            earth.toFront();
         });
 
         nameList.setOnMouseClicked(event -> {
             String s = nameList.getSelectionModel().getSelectedItems().get(0).toString();
             nameTextField.setText(s);
-            nameList.setVisible(false);
-            nameList.setMaxHeight(0);
-            infoLabel.setVisible(false);
+            launchObisSpecieQuery();
         });
 
         nameTextField.textProperty().addListener((observable, oldValue, newValue) -> {
@@ -546,8 +548,60 @@ public class View implements Initializable, ReceiveNotification {
                     else if (!stopped)
                         //on est en mode animation et l'animation est lancée.
                         printGeoHashesFromSpecieFeature(controller.getSpecies().get(id_frame));
-
         });
+    }
+
+    /**
+     * Lance une requête Obis après avoir saisi une espèce.
+     */
+    private void launchObisSpecieQuery() {
+        nameList.getItems().clear();
+        infoLabel.setVisible(false);
+        nameList.setVisible(false);
+        nameList.setMaxHeight(0);
+
+        if (!timeCheckBox.isSelected()) {
+            infoLabel.setVisible(true);
+            infoLabel.setText("Chargement d'une espèce ...");
+            controller.loadObisFiles(nameTextField.getCharacters().toString());
+            // wait receiveNotificationLoadedObis1
+        } else {
+            // Mode entre 2 dates.
+            LocalDate startDate = startDatePicker.getValue();
+            LocalDate endDate = endDatePicker.getValue();
+            if (startDate != null && endDate != null) {
+                if (startDate.isBefore(endDate)) {
+                    startDateLabel.setVisible(false);
+                    startDateLabel.setMaxHeight(0);
+                    endDateLabel.setVisible(false);
+                    endDateLabel.setMaxHeight(0);
+
+                    if (!evolutionCheckBox.isSelected()) {
+                        infoLabel.setVisible(true);
+                        infoLabel.setText("Chargement d'une espèce ...");
+                        controller.loadObisFiles(nameTextField.getCharacters().toString(), startDate.toString(), endDate.toString());
+                        // wait receiveNotificationLoadedObis2
+                    } else {
+                        // mode Evolution
+                        infoLabel.setVisible(true);
+                        infoLabel.setText("Chargement d'une espèce ...");
+                        controller.loadObisFiles(nameTextField.getCharacters().toString(), startDate.toString(),
+                                endDate.getYear() - startDate.getYear());
+                        // wait receiveNotificationLoadedObis3
+                    }
+                } else {
+                    startDateLabel.setVisible(true);
+                    startDateLabel.setMaxHeight(18);
+                    endDateLabel.setVisible(true);
+                    endDateLabel.setMaxHeight(18);
+                }
+            } else {
+                startDateLabel.setVisible(true);
+                startDateLabel.setMaxHeight(18);
+                endDateLabel.setVisible(true);
+                endDateLabel.setMaxHeight(18);
+            }
+        }
     }
 
     private void loadLocalFile() {
@@ -653,7 +707,6 @@ public class View implements Initializable, ReceiveNotification {
             observationBox.setMaxHeight(80);
             obsCommonList.getItems().clear();
             obsDetailsList.getItems().clear();
-
             obsCommonList.setVisible(true);
             obsDetailsList.setVisible(true);
 

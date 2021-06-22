@@ -36,6 +36,12 @@ public class SpecieFeature {
             generateMinMax();
     }
 
+    /**
+     * Renvoie un booléen à VRAI si le degré de précision du geoHash est valide.
+     *
+     * @param geoHashPrecision Le degré de précision du geoHash.
+     * @return Un booléen.
+     */
     public static boolean isGeoHashValid(int geoHashPrecision) {
         return geoHashPrecision > 0 && geoHashPrecision < 12;
     }
