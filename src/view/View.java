@@ -445,6 +445,11 @@ public class View implements Initializable, ReceiveNotification {
         });
 
         startButton.setOnAction(actionEvent -> {
+            observationBox.setVisible(false);
+            observationBox.setMaxHeight(0);
+            obsCommonList.getItems().clear();
+            obsDetailsList.getItems().clear();
+
             startButton.setDisable(true);
             pauseButton.setDisable(false);
             stopButton.setDisable(false);
@@ -489,6 +494,11 @@ public class View implements Initializable, ReceiveNotification {
         });
 
         pauseButton.setOnAction(actionEvent -> {
+            observationBox.setVisible(false);
+            observationBox.setMaxHeight(0);
+            obsCommonList.getItems().clear();
+            obsDetailsList.getItems().clear();
+
             animate = !animate;
             if (animate) {
                 infoLabel.setText("");
@@ -517,7 +527,8 @@ public class View implements Initializable, ReceiveNotification {
         nameList.setOnMouseClicked(event -> {
             String s = nameList.getSelectionModel().getSelectedItems().get(0).toString();
             nameTextField.setText(s);
-            launchObisSpecieQuery();
+            if (stopped)
+                launchObisSpecieQuery();
         });
 
         nameTextField.textProperty().addListener((observable, oldValue, newValue) -> {
@@ -610,6 +621,11 @@ public class View implements Initializable, ReceiveNotification {
         controller.loadLocalFile();
         display = false;
         // wait receiveNotificationLoadedLocal
+
+        observationBox.setVisible(false);
+        observationBox.setMaxHeight(0);
+        obsCommonList.getItems().clear();
+        obsDetailsList.getItems().clear();
     }
 
     @Override
@@ -626,6 +642,11 @@ public class View implements Initializable, ReceiveNotification {
             else
                 printGeoHashesFromSpecieFeature(controller.getSpecie());
         }
+
+        observationBox.setVisible(false);
+        observationBox.setMaxHeight(0);
+        obsCommonList.getItems().clear();
+        obsDetailsList.getItems().clear();
     }
 
     @Override
@@ -642,6 +663,11 @@ public class View implements Initializable, ReceiveNotification {
             else
                 printGeoHashesFromSpecieFeature(controller.getSpecie());
         }
+
+        observationBox.setVisible(false);
+        observationBox.setMaxHeight(0);
+        obsCommonList.getItems().clear();
+        obsDetailsList.getItems().clear();
     }
 
     @Override
@@ -653,6 +679,11 @@ public class View implements Initializable, ReceiveNotification {
         geoHashes.getChildren().clear();
         minLabel.setText("Min");
         maxLabel.setText("Max");
+
+        observationBox.setVisible(false);
+        observationBox.setMaxHeight(0);
+        obsCommonList.getItems().clear();
+        obsDetailsList.getItems().clear();
     }
 
     @Override

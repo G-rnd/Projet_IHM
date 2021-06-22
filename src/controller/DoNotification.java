@@ -1,4 +1,6 @@
-package view;
+package controller;
+
+import view.ReceiveNotification;
 
 public interface DoNotification {
     /**

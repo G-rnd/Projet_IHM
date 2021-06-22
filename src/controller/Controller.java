@@ -4,7 +4,6 @@ import javafx.animation.AnimationTimer;
 import model.Model;
 import model.ObservationDetails;
 import model.SpecieFeature;
-import view.DoNotification;
 import view.ReceiveNotification;
 
 import java.util.ArrayList;
@@ -259,4 +258,5 @@ public class Controller implements DoNotification {
     public void notifyLoadedODS(ReceiveNotification receiver) {
         receiver.receiveNotificationLoadedODS();
     }
+
 }
